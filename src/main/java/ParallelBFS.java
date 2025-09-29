@@ -4,6 +4,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class ParallelBFS {
 
+    private static final Node POISON = new Node(-1000);
     private final AtomicLong pendingWorkCount = new AtomicLong(0);
     private final int threadCount;
     private final ExecutorService exec;
@@ -57,7 +58,7 @@ public class ParallelBFS {
         return this.seenSet;
     }
 
-    public void start(Node start) {
+    private void start(Node start) {
         if (start == null) {
             throw new IllegalArgumentException("Start node cannot be null");
         }
@@ -70,16 +71,13 @@ public class ParallelBFS {
         }
     }
 
-    public void stop(int timeout) {
+    // An alternative, blocking start method
+    public void traverseAndWait(Node start) throws InterruptedException {
+        this.start(start); // Start the process
+
+        // Shutdown and wait for termination
         exec.shutdown();
-        try {
-            if (!exec.awaitTermination(timeout, TimeUnit.MILLISECONDS)) {
-                exec.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            System.out.println("didn't terminate in given time");
-            exec.shutdownNow();
-        }
+        exec.awaitTermination(15000, TimeUnit.MILLISECONDS);
     }
 
 }

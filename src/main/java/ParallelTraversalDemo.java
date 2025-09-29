@@ -14,16 +14,17 @@ public class ParallelTraversalDemo {
         System.out.println("Started generating");
         // 1. Generate graph
         List<Node> graph = GraphGenerator.generateGraph(totalNodes, density);
-
-//      # Parallel BFS time measurement
-        // 2. Run BFS from node 0
         System.out.println("finished generating");
+
+        // Parallel BFS time measurement
+        // 2. Run BFS from node 0
         BlockingQueue<Node> blockingQueue = new LinkedBlockingQueue<>();
         Set<Integer> concurrentSet = ConcurrentHashMap.newKeySet();
         ParallelBFS parallelBFS = new ParallelBFS(blockingQueue, concurrentSet, 8);
+
+
         Instant start = Instant.now();
-        parallelBFS.start(graph.getFirst());
-        parallelBFS.stop(15000);
+        parallelBFS.traverseAndWait(graph.getFirst());
         Instant end = Instant.now();
         Duration elapsed = Duration.between(start, end);
         System.out.print("Time to traverse the graph: ");
