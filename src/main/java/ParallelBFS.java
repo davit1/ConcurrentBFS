@@ -1,5 +1,4 @@
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -9,7 +8,7 @@ public class ParallelBFS {
     private final int threadCount;
     private final ExecutorService exec;
     private final BlockingQueue<Node> workQueue;
-    private final ConcurrentMap<Integer, Boolean> seenMap;
+    private final Set<Integer> seenSet; // must be a thread safe implementation of the Set interface
 
     private class BfsTraverserTask implements Runnable {
         @Override
@@ -20,7 +19,8 @@ public class ParallelBFS {
                     if (node != null) {
                         simulateLoad(node);
                         for (Node neighbor: node.getNeighbors()) {
-                            if (seenMap.putIfAbsent(neighbor.id, true) == null) {
+                            if (seenSet.add(neighbor.id)) {
+                                pendingWorkCount.incrementAndGet();
                                 workQueue.add(neighbor);
                             }
                         }
@@ -46,22 +46,22 @@ public class ParallelBFS {
         }
     }
 
-    public ParallelBFS(BlockingQueue<Node> blockingQueue, ConcurrentMap<Integer, Boolean> concurrentMap, int threadCount) {
+    public ParallelBFS(BlockingQueue<Node> blockingQueue, Set<Integer> concurrentSet, int threadCount) {
         this.threadCount = threadCount;
         exec  = Executors.newFixedThreadPool(threadCount);
         workQueue = blockingQueue;
-        seenMap = concurrentMap;
+        seenSet = concurrentSet;
     }
 
-    public ConcurrentMap<Integer, Boolean> getSeenMap() {
-        return this.seenMap;
+    public Set<Integer> getSeenSet() {
+        return this.seenSet;
     }
 
     public void start(Node start) {
         if (start == null) {
             throw new IllegalArgumentException("Start node cannot be null");
         }
-        seenMap.put(start.id, true);
+        seenSet.add(start.id);
         workQueue.add(start);
         pendingWorkCount.set(1);
 

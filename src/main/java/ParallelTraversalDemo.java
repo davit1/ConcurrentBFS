@@ -19,8 +19,8 @@ public class ParallelTraversalDemo {
         // 2. Run BFS from node 0
         System.out.println("finished generating");
         BlockingQueue<Node> blockingQueue = new LinkedBlockingQueue<>();
-        ConcurrentMap<Integer, Boolean> concurrentMap = new ConcurrentHashMap<>();
-        ParallelBFS parallelBFS = new ParallelBFS(blockingQueue, concurrentMap, 16);
+        Set<Integer> concurrentSet = ConcurrentHashMap.newKeySet();
+        ParallelBFS parallelBFS = new ParallelBFS(blockingQueue, concurrentSet, 8);
         Instant start = Instant.now();
         parallelBFS.start(graph.getFirst());
         parallelBFS.stop(15000);
@@ -29,11 +29,11 @@ public class ParallelTraversalDemo {
         System.out.print("Time to traverse the graph: ");
         System.out.println(elapsed.toMillis());
 
-        if (parallelBFS.getSeenMap().size() == totalNodes) {
+        if (parallelBFS.getSeenSet().size() == totalNodes) {
             System.out.println("bfs visited all of the nodes");
         } else {
             System.out.println("bfs not working properly, not all nodes have been visited");
-            System.out.println(parallelBFS.getSeenMap().size());
+            System.out.println(parallelBFS.getSeenSet().size());
             System.out.println(totalNodes);
         }
 
