@@ -15,18 +15,26 @@ public class ParallelBFS {
         @Override
         public void run() {
             try {
-                while (!Thread.interrupted()) {
-                    Node node = workQueue.poll(50, TimeUnit.MILLISECONDS);
-                    if (node != null) {
-                        simulateLoad(node);
-                        for (Node neighbor: node.getNeighbors()) {
-                            if (seenSet.add(neighbor.id)) {
-                                pendingWorkCount.incrementAndGet();
-                                workQueue.add(neighbor);
-                            }
+                while(true) {
+                    Node node = workQueue.take();
+                    // if encounter a poison pill, push it back to the queue and shutdown
+                    if (node == POISON) {
+                        workQueue.add(node);
+                        break;
+                    }
+
+                    simulateLoad(node);
+                    for (Node neighbor: node.getNeighbors()) {
+                        if (seenSet.add(neighbor.id)) {
+                            pendingWorkCount.incrementAndGet();
+                            workQueue.add(neighbor);
                         }
-                        pendingWorkCount.decrementAndGet();
-                    } else if (pendingWorkCount.get() == 0) {
+                    }
+                    // if a thread sees no more jobs pending it has to poison all other threads and shutdown itself
+                    if (pendingWorkCount.decrementAndGet() == 0) {
+                        for (int i = 0; i < threadCount; i++) {
+                            workQueue.put(POISON);
+                        }
                         break;
                     }
                 }

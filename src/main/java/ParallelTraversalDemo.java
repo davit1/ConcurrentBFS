@@ -20,7 +20,7 @@ public class ParallelTraversalDemo {
         // 2. Run BFS from node 0
         BlockingQueue<Node> blockingQueue = new LinkedBlockingQueue<>();
         Set<Integer> concurrentSet = ConcurrentHashMap.newKeySet();
-        ParallelBFS parallelBFS = new ParallelBFS(blockingQueue, concurrentSet, 8);
+        ParallelBFS parallelBFS = new ParallelBFS(blockingQueue, concurrentSet, 16);
 
 
         Instant start = Instant.now();
