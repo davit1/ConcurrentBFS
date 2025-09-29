@@ -19,18 +19,10 @@ public class ParallelBFS {
                     Node node = workQueue.poll(50, TimeUnit.MILLISECONDS);
                     if (node != null) {
                         simulateLoad(node);
-                        List<Node> batch = null;
                         for (Node neighbor: node.getNeighbors()) {
                             if (seenMap.putIfAbsent(neighbor.id, true) == null) {
-                                if (batch == null) {
-                                    batch = new ArrayList<>(32);
-                                }
-                                batch.add(neighbor);
+                                workQueue.add(neighbor);
                             }
-                        }
-                        if (batch != null) {
-                            pendingWorkCount.addAndGet(batch.size());
-                            workQueue.addAll(batch);
                         }
                         pendingWorkCount.decrementAndGet();
                     } else if (pendingWorkCount.get() == 0) {
